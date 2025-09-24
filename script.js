@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const gameScreen = document.getElementById("game-screen");
   const rankingScreen = document.getElementById("ranking-screen");
   const endScreen = document.getElementById("end-screen");
+  // Adicionando a nova tela de instruções
   const instructionsScreen = document.getElementById("instructions-screen");
   const wordGrid = document.getElementById("word-grid");
   const wordsToFindList = document.getElementById("words-to-find");
