@@ -1,0 +1,367 @@
+/* Paleta de Cores e Fontes */
+:root {
+    --primary-color: #0056b3;
+    --secondary-color: #f1f1f1;
+    --background-color: #e9eef7;
+    --grid-bg-color: #ffffff;
+    --found-word-color: #17a2b8;
+    --text-color: #34495e;
+    --accent-color: #28a745;
+    --font-family: 'Poppins', sans-serif;
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--background-color);
+    color: var(--text-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    transition: background-color 0.5s ease;
+}
+
+.header {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.logo {
+    width: clamp(80px, 10vw, 120px);
+    opacity: 0.8;
+}
+
+#game-container {
+    background: var(--grid-bg-color);
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    max-width: 900px;
+    width: 100%;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.screen {
+    width: 100%;
+    min-height: 500px;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    box-sizing: border-box;
+    transition: opacity 0.5s ease;
+}
+
+#start-screen {
+    display: flex;
+}
+
+.logo-screen {
+    width: clamp(100px, 20vw, 150px);
+    margin-bottom: 20px;
+}
+
+h2 {
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 15px;
+}
+
+button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 86, 179, 0.3);
+}
+
+button:hover {
+    background-color: #004494;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 86, 179, 0.4);
+}
+
+button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 10px rgba(0, 86, 179, 0.2);
+}
+
+.menu-item {
+    margin-bottom: 20px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+select {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    font-family: var(--font-family);
+    cursor: pointer;
+    background-color: #f8f9fa;
+    color: var(--text-color);
+}
+
+.game-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 20px;
+    padding: 0 20px;
+}
+
+.info-group {
+    display: flex;
+    gap: 30px;
+}
+
+.info-item {
+    font-size: clamp(1rem, 2.5vw, 1.3rem);
+    font-weight: 600;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.game-content {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    width: 100%;
+    gap: 20px;
+}
+
+#word-grid-container {
+    padding: 10px;
+    background-color: var(--secondary-color);
+    border-radius: 15px;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    width: 100%;
+}
+
+#word-grid {
+    display: grid;
+    gap: 2px;
+}
+
+.grid-cell {
+    width: clamp(20px, 4.5vw, 30px);
+    height: clamp(20px, 4.5vw, 30px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: clamp(1rem, 2.5vw, 1.5rem);
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+    background-color: var(--grid-bg-color);
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    text-transform: uppercase;
+    color: var(--text-color);
+}
+
+.grid-cell.selected {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.grid-cell.selected-start,
+.grid-cell.selected-end {
+    border: 2px solid var(--accent-color);
+}
+
+.grid-cell.found {
+    background-color: var(--found-word-color);
+    color: white;
+    cursor: default;
+}
+
+#word-list {
+    width: 100%;
+    max-width: 250px;
+    background-color: var(--secondary-color);
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    text-align: left;
+}
+
+#word-list h3 {
+    margin-top: 0;
+    font-size: 1.3rem;
+    color: var(--primary-color);
+}
+
+#words-to-find {
+    list-style-type: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+#words-to-find li {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-color);
+    transition: color 0.3s ease, text-decoration 0.3s ease;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+#words-to-find .found-word-item {
+    color: var(--found-word-color);
+    text-decoration: line-through;
+}
+
+#ranking-list {
+    list-style-type: none;
+    padding: 0;
+    width: 100%;
+    max-width: 500px;
+}
+
+#ranking-list li {
+    background: #e0e0e0;
+    margin-bottom: 8px;
+    padding: 15px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+#end-screen #save-score {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+}
+
+#player-name {
+    padding: 12px;
+    font-size: 1rem;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    margin-bottom: 15px;
+    font-family: var(--font-family);
+    background-color: #f8f9fa;
+    color: var(--text-color);
+}
+
+.game-controls {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.audio-control-button {
+    background: none;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    box-shadow: none;
+}
+
+.audio-control-button:hover {
+    transform: scale(1.1);
+    background: none;
+    box-shadow: none;
+}
+
+.audio-control-button img {
+    width: 30px;
+    height: 30px;
+    filter: invert(30%) sepia(85%) saturate(300%) hue-rotate(180deg);
+}
+
+
+/* Estilização da tela de instruções para um visual mais bonito */
+#instructions-screen ul {
+    list-style: none;
+    padding: 0;
+    text-align: left;
+    max-width: 500px;
+    width: 100%;
+    margin: 20px auto;
+}
+
+#instructions-screen ul li {
+    background-color: var(--secondary-color);
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    font-size: 1rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+#instructions-screen ul li::before {
+    content: "•";
+    color: var(--primary-color);
+    font-weight: bold;
+    display: inline-block;
+    width: 1em;
+    margin-left: -1em;
+}
+
+#end-screen, #ranking-screen {
+    justify-content: flex-start;
+    padding-top: 40px;
+}
+
+/* Responsividade para telas menores */
+@media (max-width: 768px) {
+    .game-content {
+        flex-direction: column;
+        align-items: center;
+    }
+    .game-info {
+        flex-direction: column;
+        gap: 15px;
+    }
+    #word-list {
+        width: 100%;
+        max-width: none;
+    }
+    #word-grid-container {
+        width: 100%;
+    }
+    .grid-cell {
+        font-size: 1.2rem;
+    }
+    .info-group {
+        width: 100%;
+        justify-content: space-around;
+    }
+    .game-controls {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
