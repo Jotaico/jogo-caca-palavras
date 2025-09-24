@@ -185,6 +185,11 @@ select {
     color: var(--text-color);
 }
 
+/* Nova classe para o efeito de destaque ao passar o mouse */
+.grid-cell.hovering {
+    background-color: #e0e0e0;
+}
+
 .grid-cell.selected {
     background-color: var(--primary-color);
     color: white;

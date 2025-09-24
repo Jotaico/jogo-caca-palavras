@@ -26,6 +26,9 @@ document.addEventListener("DOMContentLoaded", () => {
   let firstClickCell = null;
   let isMuted = false;
 
+  // Variável para controlar o estado do arraste
+  let isSelecting = false;
+
   // Referência para os elementos de áudio
   const bgMusic = document.getElementById("bg-music");
   const foundWordSound = document.getElementById("found-word-sound");
@@ -74,6 +77,10 @@ document.addEventListener("DOMContentLoaded", () => {
     },
   };
 
+  // Ordem dos níveis do jogo
+  const levelOrder = ["easy", "medium", "hard"];
+  let currentLevelIndex = 0;
+
   // Funções de controle da interface (mostrar/esconder telas)
   window.showScreen = (screenId) => {
     const screens = document.querySelectorAll(".screen");
@@ -98,11 +105,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Funções principais do jogo
   window.startGame = () => {
-    const level = levelSelect.value;
-    if (!levels[level]) {
-      return;
+    const selectedLevel = levelSelect.value;
+    currentLevelIndex = levelOrder.indexOf(selectedLevel);
+    if (currentLevelIndex === -1) {
+      currentLevelIndex = 0;
     }
-    currentLevel = levels[level];
+
+    currentLevel = levels[levelOrder[currentLevelIndex]];
     score = 0;
     foundWords = [];
     selectedCells = [];
@@ -220,9 +229,12 @@ document.addEventListener("DOMContentLoaded", () => {
         cell.dataset.row = i;
         cell.dataset.col = j;
         cell.textContent = gridData[i][j] || "";
-        cell.addEventListener("mousedown", handleCellClick);
+
+        // Adicionando os eventos de mouse para seleção por arraste
+        cell.addEventListener("mousedown", handleMouseDown);
         cell.addEventListener("mouseover", handleCellHover);
         cell.addEventListener("mouseup", handleMouseUp);
+
         wordGrid.appendChild(cell);
       }
     }
@@ -238,76 +250,44 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  function handleCellClick(event) {
+  // Lógica de seleção por arraste
+  function handleMouseDown(event) {
     const cell = event.target;
-    if (cell.classList.contains("found")) return;
-
-    if (firstClickCell) {
-      const secondClickCell = cell;
-      checkWord(firstClickCell, secondClickCell);
-      resetSelection();
-    } else {
-      firstClickCell = cell;
-      cell.classList.add("selected-start");
-      selectedCells.push(cell);
-    }
-  }
-
-  function handleCellHover(event) {
-    if (!firstClickCell) return;
-    const hoverCell = event.target;
-    if (
-      hoverCell.classList.contains("selected") ||
-      hoverCell === firstClickCell
-    )
+    if (cell.classList.contains("found")) {
       return;
-
-    selectedCells.forEach((c) =>
-      c.classList.remove("selected", "selected-end")
-    );
-    selectedCells = [firstClickCell];
-
-    const path = getPath(firstClickCell, hoverCell);
-    path.forEach((c) => {
-      c.classList.add("selected");
-      selectedCells.push(c);
-    });
-
-    hoverCell.classList.add("selected-end");
+    }
+    isSelecting = true;
+    firstClickCell = cell;
+    cell.classList.add("selected-start");
+    selectedCells.push(cell);
   }
 
   function handleMouseUp(event) {
-    if (firstClickCell && event.target !== firstClickCell) {
-      const secondClickCell = event.target;
-      checkWord(firstClickCell, secondClickCell);
+    if (!isSelecting) {
+      return;
     }
+    isSelecting = false;
+    const lastCell = event.target;
+    checkWord(firstClickCell, lastCell);
     resetSelection();
   }
 
-  function getPath(start, end) {
-    const startRow = parseInt(start.dataset.row);
-    const startCol = parseInt(start.dataset.col);
-    const endRow = parseInt(end.dataset.row);
-    const endCol = parseInt(end.dataset.col);
-
-    const path = [];
-    const dx = Math.sign(endCol - startCol);
-    const dy = Math.sign(endRow - startRow);
-
-    let currentRow = startRow;
-    let currentCol = startCol;
-
-    while (currentRow !== endRow + dy || currentCol !== endCol + dx) {
-      const cell = document.querySelector(
-        `[data-row="${currentRow}"][data-col="${currentCol}"]`
-      );
-      if (cell) {
-        path.push(cell);
-      }
-      currentRow += dy;
-      currentCol += dx;
+  function handleCellHover(event) {
+    if (!isSelecting) {
+      return;
     }
-    return path;
+    const cell = event.target;
+    const path = getSelectedPath(firstClickCell, cell);
+
+    selectedCells.forEach((c) => c.classList.remove("selected", "hovering"));
+    selectedCells = [];
+    path.forEach((c) => {
+      c.classList.add("selected", "hovering");
+      selectedCells.push(c);
+    });
+
+    firstClickCell.classList.add("selected-start");
+    cell.classList.add("selected-end");
   }
 
   function checkWord(startCell, endCell) {
@@ -338,7 +318,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     resetSelection();
     if (foundWords.length === currentLevel.words.length) {
-      endGame(true);
+      endGame(true, false);
     }
   }
 
@@ -375,7 +355,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function resetSelection() {
     selectedCells.forEach((c) =>
-      c.classList.remove("selected", "selected-start", "selected-end")
+      c.classList.remove(
+        "selected",
+        "selected-start",
+        "selected-end",
+        "hovering"
+      )
     );
     firstClickCell = null;
     selectedCells = [];
@@ -408,18 +393,64 @@ document.addEventListener("DOMContentLoaded", () => {
     scoreDisplay.textContent = score;
   }
 
-  function endGame(win) {
+  function endGame(win, completedAllLevels = false) {
     clearInterval(timer);
     stopBackgroundMusic();
-    if (win) {
-      endMessage.textContent = "Parabéns, você encontrou todas as palavras!";
+    const saveScoreSection = document.getElementById("save-score");
+
+    if (win && !completedAllLevels) {
+      endMessage.textContent =
+        "Parabéns, você encontrou todas as palavras deste nível!";
+      finalScoreDisplay.textContent = score;
+      saveScoreSection.innerHTML = `
+          <p>Pronto para o próximo nível?</p>
+          <button onclick="window.startNextLevel()">Próximo Nível</button>
+      `;
+      showScreen("end-screen");
+    } else if (win && completedAllLevels) {
+      endMessage.textContent =
+        "Parabéns, você completou todos os níveis do jogo!";
+      finalScoreDisplay.textContent = score;
+      saveScoreSection.innerHTML = `
+          <p>Insira seu nome para salvar sua pontuação:</p>
+          <input type="text" id="player-name" placeholder="Seu nome" maxlength="15">
+          <button onclick="window.saveScore()">Salvar Pontuação</button>
+          <button onclick="window.restartGame()">Voltar ao Início</button>
+      `;
+      showScreen("end-screen");
     } else {
       endMessage.textContent = "O tempo acabou! Tente novamente.";
+      finalScoreDisplay.textContent = score;
       playGameOverSound();
+      saveScoreSection.innerHTML = `
+          <p>Insira seu nome para salvar sua pontuação:</p>
+          <input type="text" id="player-name" placeholder="Seu nome" maxlength="15">
+          <button onclick="window.saveScore()">Salvar Pontuação</button>
+          <button onclick="window.restartGame()">Voltar ao Início</button>
+      `;
+      showScreen("end-screen");
     }
-    finalScoreDisplay.textContent = score;
-    showScreen("end-screen");
   }
+
+  window.startNextLevel = () => {
+    currentLevelIndex++;
+    if (currentLevelIndex < levelOrder.length) {
+      currentLevel = levels[levelOrder[currentLevelIndex]];
+      foundWords = [];
+      selectedCells = [];
+      firstClickCell = null;
+
+      wordGrid.innerHTML = "";
+      wordsToFindList.innerHTML = "";
+
+      generateGrid();
+      renderWordsToFind();
+      showScreen("game-screen");
+      startTimer();
+    } else {
+      endGame(true, true);
+    }
+  };
 
   // Funções de controle de áudio
   function playBackgroundMusic() {
@@ -500,7 +531,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   window.saveScore = () => {
-    const playerName = playerNameInput.value.trim();
+    const playerName = document.getElementById("player-name").value.trim();
     if (playerName && score > 0) {
       const ranking = getRanking();
       ranking.push({ name: playerName, score: score });
