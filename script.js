@@ -3,7 +3,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const gameScreen = document.getElementById("game-screen");
   const rankingScreen = document.getElementById("ranking-screen");
   const endScreen = document.getElementById("end-screen");
-  // Adicionando a nova tela de instruções
   const instructionsScreen = document.getElementById("instructions-screen");
   const wordGrid = document.getElementById("word-grid");
   const wordsToFindList = document.getElementById("words-to-find");
@@ -16,6 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const noRankingMessage = document.getElementById("no-ranking-message");
   const muteButton = document.getElementById("mute-button");
   const muteIcon = document.getElementById("mute-icon");
+  const nameRequiredMessage = document.getElementById("name-required-message");
 
   let currentLevel;
   let score = 0;
@@ -31,9 +31,12 @@ document.addEventListener("DOMContentLoaded", () => {
   let isSelecting = false;
 
   // Referência para os elementos de áudio
-  const bgMusic = document.getElementById("bg-music");
+  const introMusic = document.getElementById("intro-music");
+  const gameMusic = document.getElementById("game-music");
+  const rankingMusic = document.getElementById("ranking-music");
   const foundWordSound = document.getElementById("found-word-sound");
-  const gameOverSound = document.getElementById("game-over-sound");
+  const winSound = document.getElementById("win-sound");
+  const loseSound = document.getElementById("lose-sound");
 
   // Definição dos níveis do jogo, com palavras e tamanhos de grade
   const levels = {
@@ -87,21 +90,48 @@ document.addEventListener("DOMContentLoaded", () => {
     const screens = document.querySelectorAll(".screen");
     screens.forEach((screen) => (screen.style.display = "none"));
     document.getElementById(screenId).style.display = "flex";
+
+    stopAllMusic();
+    if (screenId === "start-screen" || screenId === "instructions-screen") {
+      playMusic(introMusic);
+    } else if (screenId === "ranking-screen") {
+      playMusic(rankingMusic);
+      renderRanking();
+    }
   };
+
+  function stopAllMusic() {
+    introMusic.pause();
+    gameMusic.pause();
+    rankingMusic.pause();
+    introMusic.currentTime = 0;
+    gameMusic.currentTime = 0;
+    rankingMusic.currentTime = 0;
+  }
+
+  function playMusic(music) {
+    if (!isMuted) {
+      music.currentTime = 0;
+      music
+        .play()
+        .catch((error) => console.error("Erro ao tocar música:", error));
+    }
+  }
 
   window.toggleMute = () => {
     isMuted = !isMuted;
-    if (isMuted) {
-      bgMusic.muted = true;
-      foundWordSound.muted = true;
-      gameOverSound.muted = true;
-      muteIcon.src = "https://api.iconify.design/ic:baseline-volume-off.svg";
-    } else {
-      bgMusic.muted = false;
-      foundWordSound.muted = false;
-      gameOverSound.muted = false;
-      muteIcon.src = "https://api.iconify.design/ic:baseline-volume-up.svg";
-    }
+    const allAudio = [
+      introMusic,
+      gameMusic,
+      rankingMusic,
+      foundWordSound,
+      winSound,
+      loseSound,
+    ];
+    allAudio.forEach((audio) => (audio.muted = isMuted));
+    muteIcon.src = isMuted
+      ? "https://api.iconify.design/ic:baseline-volume-off.svg"
+      : "https://api.iconify.design/ic:baseline-volume-up.svg";
   };
 
   // Funções principais do jogo
@@ -119,17 +149,19 @@ document.addEventListener("DOMContentLoaded", () => {
     firstClickCell = null;
     updateScore();
 
+    stopAllMusic();
+    playMusic(gameMusic);
+
     // Inicia o jogo, gerando a grade e o temporizador
     generateGrid();
     renderWordsToFind();
     showScreen("game-screen");
     startTimer();
-    playBackgroundMusic();
   };
 
   window.restartGame = () => {
     clearInterval(timer);
-    stopBackgroundMusic();
+    stopAllMusic();
     showScreen("start-screen");
   };
 
@@ -396,7 +428,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function endGame(win, completedAllLevels = false) {
     clearInterval(timer);
-    stopBackgroundMusic();
+    stopAllMusic();
     const saveScoreSection = document.getElementById("save-score");
 
     if (win && !completedAllLevels) {
@@ -407,6 +439,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <p>Pronto para o próximo nível?</p>
           <button onclick="window.startNextLevel()">Próximo Nível</button>
       `;
+      playMusic(winSound);
       showScreen("end-screen");
     } else if (win && completedAllLevels) {
       endMessage.textContent =
@@ -416,18 +449,17 @@ document.addEventListener("DOMContentLoaded", () => {
           <p>Insira seu nome para salvar sua pontuação:</p>
           <input type="text" id="player-name" placeholder="Seu nome" maxlength="15">
           <button onclick="window.saveScore()">Salvar Pontuação</button>
-          <button onclick="window.restartGame()">Voltar ao Início</button>
       `;
+      playMusic(winSound);
       showScreen("end-screen");
     } else {
       endMessage.textContent = "O tempo acabou! Tente novamente.";
       finalScoreDisplay.textContent = score;
-      playGameOverSound();
+      playMusic(loseSound);
       saveScoreSection.innerHTML = `
           <p>Insira seu nome para salvar sua pontuação:</p>
           <input type="text" id="player-name" placeholder="Seu nome" maxlength="15">
           <button onclick="window.saveScore()">Salvar Pontuação</button>
-          <button onclick="window.restartGame()">Voltar ao Início</button>
       `;
       showScreen("end-screen");
     }
@@ -444,6 +476,9 @@ document.addEventListener("DOMContentLoaded", () => {
       wordGrid.innerHTML = "";
       wordsToFindList.innerHTML = "";
 
+      stopAllMusic();
+      playMusic(gameMusic);
+
       generateGrid();
       renderWordsToFind();
       showScreen("game-screen");
@@ -454,39 +489,12 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   // Funções de controle de áudio
-  function playBackgroundMusic() {
-    if (!isMuted) {
-      bgMusic.currentTime = 0;
-      bgMusic
-        .play()
-        .catch((error) =>
-          console.error("Erro ao tocar música de fundo:", error)
-        );
-    }
-  }
-
-  function stopBackgroundMusic() {
-    bgMusic.pause();
-    bgMusic.currentTime = 0;
-  }
-
   function playFoundWordSound() {
     if (!isMuted) {
       foundWordSound.currentTime = 0;
       foundWordSound
         .play()
         .catch((error) => console.error("Erro ao tocar som de acerto:", error));
-    }
-  }
-
-  function playGameOverSound() {
-    if (!isMuted) {
-      gameOverSound.currentTime = 0;
-      gameOverSound
-        .play()
-        .catch((error) =>
-          console.error("Erro ao tocar som de derrota:", error)
-        );
     }
   }
 
@@ -537,10 +545,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const ranking = getRanking();
       ranking.push({ name: playerName, score: score });
       saveRanking(ranking);
+      nameRequiredMessage.style.display = "none"; // Esconde a mensagem se o nome for válido
       showScreen("ranking-screen");
-      renderRanking();
     } else {
-      alert("Por favor, digite seu nome para salvar a pontuação.");
+      nameRequiredMessage.style.display = "block"; // Mostra a mensagem se o nome estiver vazio
     }
   };
 
