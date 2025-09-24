@@ -16,7 +16,6 @@
 
     <div id="game-container">
         <div id="start-screen" class="screen">
-            <img src="logo-senac.png" alt="Logo Senac" class="logo-screen">
             <h2>Caça-Palavras</h2>
             <div class="menu-item">
                 <label for="level-select">Selecione o Nível:</label>
@@ -82,13 +81,17 @@
                 <p>Insira seu nome para salvar sua pontuação:</p>
                 <input type="text" id="player-name" placeholder="Seu nome" maxlength="15">
                 <button onclick="saveScore()">Salvar Pontuação</button>
+                <p id="name-required-message" style="display: none; color: red;">Por favor, digite seu nome para salvar a pontuação.</p>
             </div>
         </div>
     </div>
 
-    <audio id="bg-music" src="intro.mp3" preload="auto" loop></audio>
-    <audio id="found-word-sound" src="acerto.mp3" preload="auto"></audio>
-    <audio id="game-over-sound" src="derrota.mp3" preload="auto"></audio>
+    <audio id="intro-music" src="audio/intro.mp3" preload="auto" loop></audio>
+    <audio id="game-music" src="audio/game.mp3" preload="auto" loop></audio>
+    <audio id="ranking-music" src="audio/ranking.mp3" preload="auto" loop></audio>
+    <audio id="found-word-sound" src="audio/acerto.mp3" preload="auto"></audio>
+    <audio id="win-sound" src="audio/win.mpop3" preload="auto"></audio>
+    <audio id="lose-sound" src="audio/lose.mp3" preload="auto"></audio>
     <button id="mute-button" class="audio-control-button" onclick="toggleMute()">
         <img id="mute-icon" src="https://api.iconify.design/ic:baseline-volume-up.svg" alt="Mute">
     </button>
